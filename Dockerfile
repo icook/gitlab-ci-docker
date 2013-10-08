@@ -12,7 +12,7 @@ RUN echo deb http://us.archive.ubuntu.com/ubuntu/ precise universe multiverse >>
   apt-get -y upgrade
 
 # Install dependencies
-RUN apt-get install -y wget curl gcc checkinstall libxml2-dev libxslt-dev libcurl4-openssl-dev libreadline6-dev libc6-dev libssl-dev libmysql++-dev make build-essential zlib1g-dev openssh-server git-core libyaml-dev postfix libpq-dev libicu-dev redis-server
+RUN apt-get install -y wget curl gcc checkinstall libxml2-dev libxslt-dev libcurl4-openssl-dev libreadline6-dev libc6-dev libssl-dev libmysql++-dev make build-essential zlib1g-dev openssh-server git-core libyaml-dev postfix libpq-dev libicu-dev redis-server git
 
 # Install Git
 RUN add-apt-repository -y ppa:git-core/ppa;\
@@ -38,37 +38,34 @@ RUN echo mysql-server mysql-server/root_password password $MYSQLTMPROOT | debcon
   echo mysql-server mysql-server/root_password_again password $MYSQLTMPROOT | debconf-set-selections;\
   apt-get install -y mysql-server mysql-client libmysqlclient-dev
 
-#######
-# Install GitLab
-RUN cd /home/git;\
-  su git -c "git clone https://github.com/gitlabhq/gitlabhq.git gitlab";\
-  cd /home/git/gitlab;\
-  su git -c "git checkout 6-1-stable"
-
 # Misc configuration stuff
-RUN cd /home/git/gitlab;\
-  chown -R git tmp/;\
-  chown -R git log/;\
+RUN cd /home/gitlab_ci;\
+  chown -R gitlab_ci tmp/;\
+  chown -R gitlab_ci log/;\
   chmod -R u+rwX log/;\
   chmod -R u+rwX tmp/;\
-  su git -c "mkdir /home/git/gitlab-satellites";\
-  su git -c "mkdir tmp/pids/";\
-  su git -c "mkdir tmp/sockets/";\
+  su gitlab_ci -c "mkdir /home/git/gitlab-satellites";\
+  su gitlab_ci -c "mkdir tmp/pids/";\
+  su gitlab_ci -c "mkdir tmp/sockets/";\
   chmod -R u+rwX tmp/pids/;\
   chmod -R u+rwX tmp/sockets/;\
-  su git -c "mkdir public/uploads";\
-  chmod -R u+rwX public/uploads;\
-  su git -c "cp config/unicorn.rb.example config/unicorn.rb";\
-  su git -c "git config --global user.name 'GitLab'";\
-  su git -c "git config --global user.email 'gitlab@localhost'";\
-  su git -c "git config --global core.autocrlf input"
+  su gitlab_ci -c "git config --global user.name 'GitLab CI'";\
+  su gitlab_ci -c "git config --global user.email 'gitlab_ci@localhost'";\
+  su gitlab_ci -c "git config --global core.autocrlf input"
 
-RUN cd /home/git/gitlab;\
-  gem install charlock_holmes --version '0.6.9.4';\
-  su git -c "bundle install --deployment --without development test postgres aws"
+# Install GitLab CI
+RUN cd /home/git;\
+  su gitlab_ci -c "git clone https://github.com/gitlabhq/gitlab-ci.git";\
+  cd gitlab_ci;\
+  su gitlab_ci -c "git checkout 3-2-stable";\
+  su gitlab_ci -c "cp config/application.yml.example config/application.yml";\
+  su gitlab_ci -c "cp config/puma.rb.example config/puma.rb";\
+  su gitlab_ci -c "bundle install --without development test postgres --deployment";\
+  su gitlab_ci -c "config/database.yml.mysql config/database.yml"
+
 
 # Install init scripts
-RUN cd /home/git/gitlab;\
+RUN cd /home/gitlab_ci;\
   cp lib/support/init.d/gitlab /etc/init.d/gitlab;\
   chmod +x /etc/init.d/gitlab;\
   update-rc.d gitlab defaults 21

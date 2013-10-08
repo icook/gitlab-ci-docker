@@ -45,12 +45,12 @@ sleep 5
 
 # Initialize MySQL
 mysqladmin -u root --password=temprootpass password $mysqlRoot
-echo "CREATE USER 'gitlab'@'localhost' IDENTIFIED BY '$password';" | \
+echo "CREATE USER 'gitlab_ci'@'localhost' IDENTIFIED BY '$password';" | \
   mysql --user=root --password=$mysqlRoot
-echo "CREATE DATABASE IF NOT EXISTS gitlabhq_production DEFAULT CHARACTER SET \
-  'utf8' COLLATE 'utf8_unicode_ci';" | mysql --user=root --password=$mysqlRoot
-echo "GRANT SELECT, LOCK TABLES, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, \
-  ALTER ON gitlabhq_production.* TO 'gitlab'@'localhost';" | mysql \
+echo "CREATE DATABASE IF NOT EXISTS gitlab_ci_production DEFAULT CHARACTER SET \
+    'utf8' COLLATE 'utf8_unicode_ci';" | mysql --user=root --password=$mysqlRoot
+echo "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER ON \
+    gitlab_ci_production.* TO 'gitlab_ci'@'localhost';" | mysql \
     --user=root --password=$mysqlRoot
 
 cd /home/git/gitlab
