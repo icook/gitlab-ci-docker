@@ -1,5 +1,4 @@
 FROM ubuntu:12.04
-ENV MYSQLTMPROOT temprootpass
 
 # Run upgrades
 RUN echo deb http://us.archive.ubuntu.com/ubuntu/ precise universe multiverse >> /etc/apt/sources.list;\
@@ -31,7 +30,7 @@ RUN mkdir /tmp/ruby;\
   gem install bundler --no-ri --no-rdoc
 
 # Create Git user
-sudo adduser --disabled-login --gecos 'GitLab CI' gitlab_ci
+RUN adduser --disabled-login --gecos 'GitLab CI' gitlab_ci
 
 # Install MySQL
 RUN echo mysql-server mysql-server/root_password password $MYSQLTMPROOT | debconf-set-selections;\
@@ -44,7 +43,6 @@ RUN cd /home/gitlab_ci;\
   chown -R gitlab_ci log/;\
   chmod -R u+rwX log/;\
   chmod -R u+rwX tmp/;\
-  su gitlab_ci -c "mkdir /home/git/gitlab-satellites";\
   su gitlab_ci -c "mkdir tmp/pids/";\
   su gitlab_ci -c "mkdir tmp/sockets/";\
   chmod -R u+rwX tmp/pids/;\
@@ -54,28 +52,23 @@ RUN cd /home/gitlab_ci;\
   su gitlab_ci -c "git config --global core.autocrlf input"
 
 # Install GitLab CI
-RUN cd /home/git;\
+RUN cd /home/gitlab_ci;\
   su gitlab_ci -c "git clone https://github.com/gitlabhq/gitlab-ci.git";\
-  cd gitlab_ci;\
+  cd gitlab-ci;\
   su gitlab_ci -c "git checkout 3-2-stable";\
-  su gitlab_ci -c "cp config/application.yml.example config/application.yml";\
-  su gitlab_ci -c "cp config/puma.rb.example config/puma.rb";\
-  su gitlab_ci -c "bundle install --without development test postgres --deployment";\
-  su gitlab_ci -c "config/database.yml.mysql config/database.yml"
-
+  su gitlab_ci -c "bundle install --without development test postgres --deployment"
 
 # Install init scripts
-RUN cd /home/gitlab_ci;\
-  cp lib/support/init.d/gitlab /etc/init.d/gitlab;\
-  chmod +x /etc/init.d/gitlab;\
-  update-rc.d gitlab defaults 21
+RUN cd /home/gitlab_ci/gitlab-ci;\
+  cp lib/support/init.d/gitlab_ci /etc/init.d/gitlab_ci;\
+  chmod +x /etc/init.d/gitlab_ci;\
+  update-rc.d gitlab_ci defaults 21
 
-EXPOSE 80
-EXPOSE 22
+EXPOSE 9292
 
-ADD . /srv/gitlab
+ADD . /srv/gitlab_ci
 
-RUN chmod +x /srv/gitlab/start.sh;\
-  chmod +x /srv/gitlab/firstrun.sh
+RUN chmod +x /srv/gitlab_ci/start.sh;\
+  chmod +x /srv/gitlab_ci/firstrun.sh
 
-CMD ["/srv/gitlab/start.sh"]
+CMD ["/srv/gitlab_ci/start.sh"]

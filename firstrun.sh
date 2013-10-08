@@ -10,34 +10,33 @@ mysqlRoot=RootPassword
 dpkg-reconfigure openssh-server
 
 # Copy over config files
-cp /srv/gitlab/config/nginx /etc/nginx/sites-available/gitlab
-ln -s /etc/nginx/sites-available/gitlab /etc/nginx/sites-enabled/gitlab
-cp /srv/gitlab/config/gitlab.yml /home/git/gitlab/config/gitlab.yml
+cp /srv/gitlab_ci/config/puma.rb /home/gitlab_ci/gitlab-ci/config/puma.rb
+cp /srv/gitlab_ci/config/application.yml /home/gitlab_ci/gitlab-ci/config/application.yml
 
-password=$(cat /srv/gitlab/config/database.yml | grep -m 1 password | sed -e 's/  password: "//g' | sed -e 's/"//g')
-cp /srv/gitlab/config/database.yml /home/git/gitlab/config/database.yml
-chown git:git /home/git/gitlab/config/database.yml && chmod o-rwx /home/git/gitlab/config/database.yml
+password=$(cat /srv/gitlab_ci/config/database.yml | grep -m 1 password | sed -e 's/  password: "//g' | sed -e 's/"//g')
+cp /srv/gitlab_ci/config/database.yml /home/gitlab_ci/gitlab-ci/config/database.yml
+chown gitlab_ci:gitlab_ci -R /home/gitlab_ci/gitlab-ci/config/ && chmod o-rwx -R /home/gitlab_ci/gitlab-ci/config/
 
-# Link data directories to /srv/gitlab/data
-rm -R /home/git/gitlab/tmp && ln -s /srv/gitlab/data/tmp /home/git/gitlab/tmp && chown -R git /srv/gitlab/data/tmp/ && chmod -R u+rwX  /srv/gitlab/data/tmp/
-rm -R /home/git/.ssh && ln -s /srv/gitlab/data/ssh /home/git/.ssh && chown -R git:git /srv/gitlab/data/ssh && chmod -R 0700 /srv/gitlab/data/ssh && chmod 0700 /home/git/.ssh
-chown -R git:git /srv/gitlab/data/gitlab-satellites
-chown -R git:git /srv/gitlab/data/repositories && chmod -R ug+rwX,o-rwx /srv/gitlab/data/repositories && chmod -R ug-s /srv/gitlab/data/repositories/
-find /srv/gitlab/data/repositories/ -type d -print0 | xargs -0 chmod g+s
+# Link data directories to /srv/gitlab_ci/data
+#rm -R /home/gitlab_ci/tmp && ln -s /srv/gitlab_ci/data/tmp /home/gitlab_ci/tmp && chown -R git /srv/gitlab_ci/data/tmp/ && chmod -R u+rwX  /srv/gitlab_ci/data/tmp/
+#rm -R /home/git/.ssh && ln -s /srv/gitlab_ci/data/ssh /home/git/.ssh && chown -R git:git /srv/gitlab_ci/data/ssh && chmod -R 0700 /srv/gitlab_ci/data/ssh && chmod 0700 /home/git/.ssh
+#chown -R git:git /srv/gitlab_ci/data/gitlab-satellites
+#chown -R git:git /srv/gitlab_ci/data/repositories && chmod -R ug+rwX,o-rwx /srv/gitlab_ci/data/repositories && chmod -R ug-s /srv/gitlab_ci/data/repositories/
+#find /srv/gitlab_ci/data/repositories/ -type d -print0 | xargs -0 chmod g+s
 
 # Change repo path in gitlab-shell config
-sed -i -e 's/\/home\/git\/repositories/\/srv\/gitlab\/data\/repositories/g' /home/git/gitlab-shell/config.yml
+#sed -i -e 's#/home/git/repositories#/srv/gitlab_ci/data/repositories#g' /home/gitlab_ci-shell/config.yml
 
-# Link MySQL dir to /srv/gitlab/data
-mv /var/lib/mysql /var/lib/mysql-tmp
-ln -s /srv/gitlab/data/mysql /var/lib/mysql
+# Link MySQL dir to /srv/gitlab_ci/data
+#mv /var/lib/mysql /var/lib/mysql-tmp
+#ln -s /srv/gitlab_ci/data/mysql /var/lib/mysql
 
 # ==============================================
 
 # === Delete this section if resoring data from previous build ===
 
-rm -R /srv/gitlab/data/mysql
-mv /var/lib/mysql-tmp /srv/gitlab/data/mysql
+rm -R /srv/gitlab_ci/data/mysql
+mv /var/lib/mysql-tmp /srv/gitlab_ci/data/mysql
 
 # Start MySQL
 mysqld_safe &
@@ -53,15 +52,12 @@ echo "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER ON \
     gitlab_ci_production.* TO 'gitlab_ci'@'localhost';" | mysql \
     --user=root --password=$mysqlRoot
 
-cd /home/git/gitlab
-su git -c "bundle exec rake gitlab:setup force=yes RAILS_ENV=production"
+cd /home/gitlab_ci/gitlab-ci
+su gitlab_ci -c "bundle exec rake db:setup force=yes RAILS_ENV=production"
 sleep 5
-su git -c "bundle exec rake db:seed_fu RAILS_ENV=production"
+su gitlab_ci -c "bundle exec whenever -w force=yes RAILS_ENV=production"
 
 # ================================================================
 
 # Manually create /var/run/sshd
 mkdir /var/run/sshd
-
-# Delete firstrun script
-rm /srv/gitlab/firstrun.sh
