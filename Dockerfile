@@ -12,7 +12,7 @@ RUN echo deb http://us.archive.ubuntu.com/ubuntu/ precise universe multiverse >>
   apt-get -y upgrade
 
 # Install dependencies
-RUN apt-get install -y build-essential zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libreadline-dev libncurses5-dev libffi-dev curl openssh-server redis-server checkinstall libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev sudo python python-docutils python-software-properties nginx
+RUN apt-get install -y wget curl gcc checkinstall libxml2-dev libxslt-dev libcurl4-openssl-dev libreadline6-dev libc6-dev libssl-dev libmysql++-dev make build-essential zlib1g-dev openssh-server git-core libyaml-dev postfix libpq-dev libicu-dev redis-server
 
 # Install Git
 RUN add-apt-repository -y ppa:git-core/ppa;\
@@ -22,8 +22,8 @@ RUN add-apt-repository -y ppa:git-core/ppa;\
 # Install Ruby
 RUN mkdir /tmp/ruby;\
   cd /tmp/ruby;\
-  curl ftp://ftp.ruby-lang.org/pub/ruby/2.0/ruby-2.0.0-p247.tar.gz | tar xz;\
-  cd ruby-2.0.0-p247;\
+  curl --progress http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.3-p392.tar.gz | tar xz;\
+  cd ruby-1.9.3-p392;\
   chmod +x configure;\
   ./configure;\
   make;\
@@ -31,22 +31,14 @@ RUN mkdir /tmp/ruby;\
   gem install bundler --no-ri --no-rdoc
 
 # Create Git user
-RUN adduser --disabled-login --gecos 'GitLab' git
-
-# Install GitLab Shell
-RUN cd /home/git;\
-  su git -c "git clone https://github.com/gitlabhq/gitlab-shell.git";\
-  cd gitlab-shell;\
-  su git -c "git checkout v1.7.1";\
-  su git -c "cp config.yml.example config.yml";\
-  sed -i -e 's/localhost/127.0.0.1/g' config.yml;\
-  su git -c "./bin/install"
+sudo adduser --disabled-login --gecos 'GitLab CI' gitlab_ci
 
 # Install MySQL
 RUN echo mysql-server mysql-server/root_password password $MYSQLTMPROOT | debconf-set-selections;\
   echo mysql-server mysql-server/root_password_again password $MYSQLTMPROOT | debconf-set-selections;\
   apt-get install -y mysql-server mysql-client libmysqlclient-dev
 
+#######
 # Install GitLab
 RUN cd /home/git;\
   su git -c "git clone https://github.com/gitlabhq/gitlabhq.git gitlab";\

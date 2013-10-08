@@ -1,7 +1,10 @@
-# GitLab Docker Build Script
+# GitLab Docker CI Build Script
 
-This Dockerfile will create a new Docker container running GitLab 6.1 on Ubuntu 12.04.
+This Dockerfile will create a new Docker container running GitLab CI on Ubuntu 12.04.
 
+** Note **: Still very WIP, this notice will be removed when things are confirmed working.
+
+<!--
 ## Installation
 
 Follow these instructions to download or build GitLab.
@@ -60,3 +63,4 @@ It should be possible to use updates to this build to update a GitLab server. Th
 5. Rerun the process from step 3 of the installation instructions.
 
 Note that while this process has been mostly tested, it has not yet been tested with DB migrations. As with any time you perform software updates, [do a backup](https://github.com/gitlabhq/gitlabhq/blob/master/doc/raketasks/backup_restore.md) first.
+-->
