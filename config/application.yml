@@ -1,7 +1,6 @@
 defaults: &defaults
   allowed_gitlab_urls: 
-    - 'https://dev.gitlab.org/'
-    - 'https://staging.gitlab.org/'
+    - 'http://code.ibcook.pri/'
   gitlab_ci:
     https: false
   gravatar:

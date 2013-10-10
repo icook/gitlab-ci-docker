@@ -8,19 +8,17 @@ redis-server > /dev/null 2>&1 &
 sleep 5
 
 # Run the firstrun script
-/srv/gitlab/firstrun.sh
+/bin/bash -x /srv/gitlab_ci/firstrun.sh || true
 
 # remove PIDs created by GitLab init script
-rm /home/git/gitlab/tmp/pids/*
+rm /home/gitlab_ci/tmp/pids/*
 
 # start mysql
 mysqld_safe &
 
 # start gitlab
-service gitlab start
+service gitlab_ci start
 
-# start nginx
-service nginx start
+echo "Gitlab CI now running on container port 9292"
 
-# keep script in foreground
-tail -f /home/git/gitlab/log/production.log
+tail -f /home/gitlab_ci/gitlab-ci/log/production.log

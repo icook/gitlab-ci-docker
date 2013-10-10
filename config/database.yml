@@ -7,8 +7,8 @@ production:
   reconnect: false
   database: gitlab_ci_production
   pool: 5
-  username: root
-  password: "secure password"
+  username: gitlab_ci
+  password: "extra_strong_password"
   # host: localhost
   # socket: /tmp/mysql.sock
 

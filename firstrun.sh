@@ -14,6 +14,7 @@ cp /srv/gitlab_ci/config/puma.rb /home/gitlab_ci/gitlab-ci/config/puma.rb
 cp /srv/gitlab_ci/config/application.yml /home/gitlab_ci/gitlab-ci/config/application.yml
 
 password=$(cat /srv/gitlab_ci/config/database.yml | grep -m 1 password | sed -e 's/  password: "//g' | sed -e 's/"//g')
+echo "Password from database config extracted as $password"
 cp /srv/gitlab_ci/config/database.yml /home/gitlab_ci/gitlab-ci/config/database.yml
 chown gitlab_ci:gitlab_ci -R /home/gitlab_ci/gitlab-ci/config/ && chmod o-rwx -R /home/gitlab_ci/gitlab-ci/config/
 
@@ -61,3 +62,12 @@ su gitlab_ci -c "bundle exec whenever -w force=yes RAILS_ENV=production"
 
 # Manually create /var/run/sshd
 mkdir /var/run/sshd
+
+# Set the dns server
+echo "192.168.1.1" > /etc/resolv.conf
+
+# change the root password
+echo "root:password" | chpasswd
+
+# Delete firstrun script
+rm /srv/gitlab_ci/firstrun.sh

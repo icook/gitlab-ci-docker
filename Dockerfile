@@ -11,12 +11,7 @@ RUN echo deb http://us.archive.ubuntu.com/ubuntu/ precise universe multiverse >>
   apt-get -y upgrade
 
 # Install dependencies
-RUN apt-get install -y wget curl gcc checkinstall libxml2-dev libxslt-dev libcurl4-openssl-dev libreadline6-dev libc6-dev libssl-dev libmysql++-dev make build-essential zlib1g-dev openssh-server git-core libyaml-dev postfix libpq-dev libicu-dev redis-server git
-
-# Install Git
-RUN add-apt-repository -y ppa:git-core/ppa;\
-  apt-get update;\
-  apt-get -y install git
+RUN apt-get install -y wget curl gcc checkinstall libxml2-dev libxslt-dev libcurl4-openssl-dev libreadline6-dev libc6-dev libssl-dev libmysql++-dev make build-essential zlib1g-dev openssh-server git-core libyaml-dev postfix libpq-dev libicu-dev redis-server git sudo cron
 
 # Install Ruby
 RUN mkdir /tmp/ruby;\
@@ -30,11 +25,12 @@ RUN mkdir /tmp/ruby;\
   gem install bundler --no-ri --no-rdoc
 
 # Create Git user
-RUN adduser --disabled-login --gecos 'GitLab CI' gitlab_ci
+RUN adduser --disabled-login --gecos 'GitLab CI' gitlab_ci;\
+   usermod -aG sudo gitlab_ci
 
 # Install MySQL
-RUN echo mysql-server mysql-server/root_password password $MYSQLTMPROOT | debconf-set-selections;\
-  echo mysql-server mysql-server/root_password_again password $MYSQLTMPROOT | debconf-set-selections;\
+RUN echo mysql-server mysql-server/root_password password temprootpass | debconf-set-selections;\
+  echo mysql-server mysql-server/root_password_again password temprootpass | debconf-set-selections;\
   apt-get install -y mysql-server mysql-client libmysqlclient-dev
 
 # Misc configuration stuff
@@ -65,6 +61,7 @@ RUN cd /home/gitlab_ci/gitlab-ci;\
   update-rc.d gitlab_ci defaults 21
 
 EXPOSE 9292
+EXPOSE 22
 
 ADD . /srv/gitlab_ci
 
