@@ -63,9 +63,6 @@ su gitlab_ci -c "bundle exec whenever -w force=yes RAILS_ENV=production"
 # Manually create /var/run/sshd
 mkdir /var/run/sshd
 
-# Set the dns server
-echo "192.168.1.1" > /etc/resolv.conf
-
 # change the root password
 echo "root:password" | chpasswd
 

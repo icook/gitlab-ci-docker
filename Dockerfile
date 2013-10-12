@@ -1,5 +1,7 @@
 FROM ubuntu:12.04
 
+RUN echo "Acquire::http { Proxy \"http://192.168.1.118:3142\"; };" > /etc/apt/apt.conf.d/02local_proxy
+
 # Run upgrades
 RUN echo deb http://us.archive.ubuntu.com/ubuntu/ precise universe multiverse >> /etc/apt/sources.list;\
   echo deb http://us.archive.ubuntu.com/ubuntu/ precise-updates main restricted universe >> /etc/apt/sources.list;\
